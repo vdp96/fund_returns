@@ -24,7 +24,8 @@ PASS = "mysqlfund"
 ENGINE = sqlalchemy.create_engine(
     f"mysql://{USER}:{PASS}@fund.cojr28wufwf9.us-west-1.rds.amazonaws.com:3306/fund_db")
 
-# Download function
+
+# load returns
 def load_return_data(funds=None, start_date=None, end_date=None):
     """
     This function aims to calculate 1,3,5,7,10 year compounded annual growth rate (CAGR) for each fund and stores it in
@@ -91,4 +92,15 @@ def download_daily_data(funds=None):
 
     return
 
-load_return_data()
+def get_fund_returns():
+    query = """
+                SELECT
+                    *
+                FROM
+                    fund_db.mutual_fund_returns
+            """
+    df = pd.read_sql(sql=query, con=ENGINE)
+    data = df.to_dict(orient="split")
+    return data
+
+
