@@ -2,7 +2,19 @@ import pandas as pd
 import yfinance
 import pandas
 import sqlalchemy
+import logging
 from datetime import datetime
+
+# =============================================================
+# CONFIGURE LOGGER
+# =============================================================
+# set format
+ft = "%(asctime)s : %(levelname)s : %(name)s : %(message)s"
+logging.basicConfig(format=ft)
+
+# creates a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(level=10)
 
 TODAY = datetime.today().strftime('%Y-%m-%d')
 
@@ -18,6 +30,16 @@ FUNDS["FCNTX"] = "Fidelity Contrafund"
 FUNDS["INIVX"] = "VanEck International Investors Gold Fund"
 FUNDS["JMIEX"] = "JPMorgan Emerging Markets Equity Fund"
 FUNDS["FLPSX"] = "Fidelity Low-Priced Stock Fund"
+
+COL_MAP = dict()
+COL_MAP["date"] = "Date"
+COL_MAP["ticker"] = "Fund Ticker"
+COL_MAP["fund_name"] = "Fund Name"
+COL_MAP["CAGR_1Y"] = "CAGR 1Y(%)"
+COL_MAP["CAGR_3Y"] = "CAGR 3Y(%)"
+COL_MAP["CAGR_5Y"] = "CAGR 5Y(%)"
+COL_MAP["CAGR_7Y"] = "CAGR 7Y(%)"
+COL_MAP["CAGR_10Y"] = "CAGR 10Y(%)"
 
 USER = "admin"
 PASS = "mysqlfund"
@@ -92,15 +114,27 @@ def download_daily_data(funds=None):
 
     return
 
-def get_fund_returns():
-    query = """
-                SELECT
-                    *
-                FROM
-                    fund_db.mutual_fund_returns
-            """
+
+def get_fund_returns(fund=None):
+    if not fund:
+        query = """
+                    SELECT
+                        *
+                    FROM
+                        fund_db.mutual_fund_returns
+                """
+    else:
+        query = """
+                    SELECT
+                        *
+                    FROM
+                        fund_db.mutual_fund_returns
+                    WHERE
+                    ticker = '{}'
+                """.format(fund)
+    logger.debug(query)
     df = pd.read_sql(sql=query, con=ENGINE)
+    df["date"] = df["date"].apply(lambda x: x.strftime("%Y-%m-%d"))
+    df = df.rename(columns=COL_MAP)
     data = df.to_dict(orient="split")
     return data
-
-

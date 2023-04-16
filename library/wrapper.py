@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(level=10)
 
 
-def get_fund_returns(funds=None, start_date=None, end_date=None):
+def get_fund_returns(fund=None, start_date=None, end_date=None):
     logger.info("get_fund_returns : start")
 
     out = dict()
@@ -24,7 +24,7 @@ def get_fund_returns(funds=None, start_date=None, end_date=None):
     out["error"] = list()
 
     try:
-        out["data"] = fund_analysis.get_fund_returns()
+        out["data"] = fund_analysis.get_fund_returns(fund=fund)
     except Exception as err:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         tb = traceback.TracebackException(exc_type, exc_value, exc_traceback)

@@ -11,7 +11,8 @@ def hello():
 
 @app.route("/fund_returns", methods=["GET", "POST"])
 def get_investor_details():
-    data = wrapper.get_fund_returns()
+    fund_ticker = request.form.get("fund_ticker", None)
+    data = wrapper.get_fund_returns(fund_ticker)
     return render_template("fund_returns.html", data=data)
 
 

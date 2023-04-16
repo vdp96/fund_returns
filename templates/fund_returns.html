@@ -8,26 +8,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/8.3.1/handsontable.full.min.js" integrity="sha512-VelAqwEqvlkUGWf/Tnyy4+yb2i81v/h4/38pr/W1bhYLThBWtgPZx2bnjbAozmSNW1Wrgf9rFiY2VbBsqJzpFQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/8.3.1/handsontable.css" integrity="sha512-URC0TzPU4Wr0Vg2FBCJVBKUfLy79H6hiHOi34WFwsyJifwXPuRLPW4ItpKxLJSYvfIuTGgoGRcXUkdt5LKLnhA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js" integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/pikaday.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pikaday@1.8.2/css/pikaday.css">
 </head>
 <style>
-canvas{
-    margin: 0 auto;
-}
-
-cht_box{
-  text-align: center;
-}
-
-cht_container{
-  width: 65%;
-  display: inline-block;
-}
 
 table {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Helvetica Neue", Arial, sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #373737;
+}
+
+no-data-message {
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 3px;
+  color: #721c24;
+  padding: 10px;
+  margin-bottom: 10px;
+  width: 40%;
+  height: 100px;
 }
 
 </style>
@@ -44,7 +46,7 @@ table {
     <!-- Nav Bar -->
     <nav class="navbar navbar-light" style="background-color: #e3f2fd;">
       <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1"><b>CSS Plotter</b></span>
+        <span class="navbar-brand mb-0 h1"><b>Mutual Fund Returns</b></span>
       </div>
     </nav>
 
@@ -61,10 +63,16 @@ table {
         <form id="fund returns" class="" action="fund_returns" method="post" name="fund_returns_form">
             <div class="tab-pane fade show active" id="nav-plotter" role="tabpanel" aria-labelledby="nav-plotter-tab">
                 <br>
+                fund ticker: <input type="text" name="fund_ticker" value="" placeholder="AGTHX">
                 <button type="submit" class="btn btn-primary">Go</button>
             </div>
         </form>
         </form>
+    </div>
+     <br>
+
+     <div id="no-data-message" class="alert alert-warning alert-dismissible fade show" role="alert">
+      Data not available for the input ticker.
     </div>
 
     <!-- Table -->
@@ -74,7 +82,30 @@ table {
     </div>
 
     <script>
+        function percentRenderer (instance, td, row, col, prop, value, cellProperties) {
+          Handsontable.renderers.NumericRenderer.apply(this, arguments);
+          td.style.color = (value < 0) ? 'red' : 'green';
+        };
+
         var out = {{ data | tojson }};
+        var colDesc = [
+          {title: "Date", type: 'text', readOnly: true, className: 'htCenter'},
+          {title: "Fund Ticker", type: 'text', readOnly: true, className: 'htCenter'},
+          {title: "Fund Name", type: 'text', readOnly: true, className: 'htLeft'},
+          {title: "CAGR 1Y(%)", type: 'numeric', renderer: percentRenderer, format: '0.00%', readOnly: true, className: 'htRight'},
+          {title: "CAGR 3Y(%)", type: 'numeric', format: '0.00%', renderer: percentRenderer, readOnly: true, className: 'htRight'},
+          {title: "CAGR 5Y(%)", type: 'numeric', format: '0.0%', renderer: percentRenderer, readOnly: true, className: 'htRight'},
+          {title: "CAGR 7Y(%)", type: 'numeric', format: '0.0%', renderer: percentRenderer, readOnly: true, className: 'htRight'},
+          {title: "CAGR 10Y(%)", type: 'numeric', format: '0.0%', renderer: percentRenderer, readOnly: true, className: 'htRight'}
+        ];
+
+        const noDataMessage = document.getElementById('no-data-message');
+
+        if (out.data.data == null || out.data.data.length == 0) {
+          noDataMessage.style.display = 'block';
+        } else {
+            noDataMessage.style.display = 'none';
+        }
 
         if (out.code > 0) {
             msg = out.error
@@ -85,9 +116,11 @@ table {
               data: out.data.data,
               rowHeaders: true,
               colHeaders: out.data.columns,
+              columns: colDesc,
               filters: true,
               overflow: "hidden",
-              colWidths: [100,100,100,100,100,100],
+              width: 1400,
+              height: 10000,
               stretchH: "all",
               dropdownMenu: true,
               preventOverflow: 'horizontal',
