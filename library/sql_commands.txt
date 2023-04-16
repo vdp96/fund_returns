@@ -1,0 +1,21 @@
+# Table to store CAGR data
+CREATE TABLE fund_db.mutual_fund_returns (
+    date DATE NOT NULL,
+    ticker VARCHAR(255) NOT NULL,
+    fund_name VARCHAR(255) NOT NULL,
+    CAGR_1Y DECIMAL(10,2) NOT NULL,
+    CAGR_3Y DECIMAL(10,3) NOT NULL,
+    CAGR_5Y DECIMAL(10,3) NOT NULL,
+    CAGR_7Y DECIMAL(10,3) NOT NULL,
+    CAGR_10Y DECIMAL(10,3) NOT NULL,
+    UNIQUE KEY date_fund (date, ticker)
+);
+
+# Table to store monthly/daily fund data
+CREATE TABLE fund_db.monthly_fund_data (
+    date DATE NOT NULL,
+    ticker VARCHAR(255) NOT NULL,
+    fund_name VARCHAR(255),
+    price FLOAT,
+    UNIQUE KEY date_fund (date, ticker)
+);
